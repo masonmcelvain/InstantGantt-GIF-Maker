@@ -12,10 +12,17 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.remote import webelement
 
 import urllib.request
-import datetime
+import datetime, time, requests
+from pathlib import Path
 from dateutil.relativedelta import relativedelta
+
+class Actions(ActionChains):
+    def wait(self, time_s: float):
+        self._actions.append(lambda: time.sleep(time_s))
+        return self
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -27,12 +34,12 @@ class DownloadProject():
         opts = Options()
         opts.log.level = "debug"
         opts.set_preference("browser.download.manager.showWhenStarting", False)
-        opts.set_preference("browser.download.dir","/Data")
-        opts.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream,application/vnd.ms-excel")
+        opts.set_preference(f"browser.download.dir","{save_path}")
+        opts.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream,application/vnd.ms-excel,image/jpeg,image/jpg")
         self.driver = webdriver.Firefox(capabilities=cap, executable_path=fpath, options=opts, service_log_path=os.path.join(ROOT_DIR, 'logs'))
         self.action = ActionChains(self.driver)
 
-        self.driver.set_window_size(3456, 1416)
+        self.driver.set_window_size(1200, 1200)
         self.driver.implicitly_wait(20) 
 
         self.save_path = save_path
@@ -60,9 +67,8 @@ class DownloadProject():
         returns formatted string for start date
         """
         today = datetime.date.today()
-        result=today - relativedelta(months=self.months_before)
+        result=today - relativedelta(months=int(self.months_before))
         result = result.strftime('%Y-%m-%d')
-        print(result)
         return result
     
     def _get_end_date(self):
@@ -70,16 +76,14 @@ class DownloadProject():
         returns formatted string for start date
         """
         today = datetime.date.today()
-        result = today + relativedelta(months=self.months_after)
+        result = today + relativedelta(months=int(self.months_after))
         result = result.strftime('%Y-%m-%d')
-        print(result)
         return result
 
         
     def login(self):
         self.driver.get("https://app.instagantt.com/")
         try:
-            self.driver.set_window_size(1456, 1416)
             
             self.driver.execute_script("scroll(0, 250);")
             login_button = self.driver.find_element_by_css_selector(".line-button-blue")
@@ -119,31 +123,39 @@ class DownloadProject():
 
         # select project
         print('project:', self.project_name)
-        project_link = self.driver.find_element(By.XPATH, f"//html//body//div[1]//div//div[4]//div[2]//ul//li[5]//div[3]//div//span[contains(text(),'{self.project_name}')]")
+        project_link = self.driver.find_element(By.XPATH, f"//span[contains(text(),'{self.project_name}')]")
         self.action.move_to_element(project_link)
         self.driver.execute_script("arguments[0].click();", project_link)
-
-        # 10 | click | css=.\_32AWpOHuVapfx2jS2omul_:nth-child(5) span | 
-        self.driver.find_element(By.CSS_SELECTOR, ".\\_32AWpOHuVapfx2jS2omul_:nth-child(5) span").click()
-        # 11 | runScript | window.scrollTo(0,0) | 
-        self.driver.execute_script("window.scrollTo(0,0)")
+        # print('clikcing unknown in 5')
+        # time.sleep(5)
+        # print('click')
+        # # 10 | click | css=.\_32AWpOHuVapfx2jS2omul_:nth-child(5) span | 
+        # self.driver.find_element(By.CSS_SELECTOR, ".\\_32AWpOHuVapfx2jS2omul_:nth-child(5) span").click()
+        # time.sleep(20)
+        # # 11 | runScript | window.scrollTo(0,0) | 
+        # self.driver.execute_script("window.scrollTo(0,0)")
         # 12 | click | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container | 
-        self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container").click()
-        # 13 | click | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container | 
-        self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container").click()
-        # 14 | click | css=.toolbar-row:nth-child(2) > .toolbar-row-icon-container | 
-        self.driver.find_element(By.CSS_SELECTOR, ".toolbar-row:nth-child(2) > .toolbar-row-icon-container").click()
-        # 15 | click | css=.toolbar-group-first-item > .toolbar-row-icon-container | 
-        self.driver.find_element(By.CSS_SELECTOR, ".toolbar-group-first-item > .toolbar-row-icon-container").click()
-        # 16 | runScript | window.scrollTo(0,0) | 
-        self.driver.execute_script("window.scrollTo(0,0)")
-        # 17 | click | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container | 
-        self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container").click()
-        # 18 | click | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container | 
-        self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container").click()
-        # 19 | click | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container | 
-        self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container").click()
-        # 20 | doubleClick | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container | 
+        # self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container").click()
+        # # 13 | click | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container | 
+        # self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container").click()
+        # # 14 | click | css=.toolbar-row:nth-child(2) > .toolbar-row-icon-container | 
+        # self.driver.find_element(By.CSS_SELECTOR, ".toolbar-row:nth-child(2) > .toolbar-row-icon-container").click()
+        # # 15 | click | css=.toolbar-group-first-item > .toolbar-row-icon-container | 
+        # self.driver.find_element(By.CSS_SELECTOR, ".toolbar-group-first-item > .toolbar-row-icon-container").click()
+        # # 16 | runScript | window.scrollTo(0,0) | 
+        # self.driver.execute_script("window.scrollTo(0,0)")
+        # 17 | click | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container |
+        #zoom out 5 times
+        
+        zoom_out = WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container")))
+        actions = ActionChains(self.driver)
+        actions.move_to_element(zoom_out)
+
+        
+        for i in range(0,5):
+            actions.click(zoom_out).perform()
+            time.sleep(0.1)
+        
         element = self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container")
         actions = ActionChains(self.driver)
         actions.double_click(element).perform()
@@ -152,30 +164,65 @@ class DownloadProject():
         # 22 | click | linkText=Export as Image & PDF | 
         self.driver.find_element(By.LINK_TEXT, "Export as Image & PDF").click()
         # 23 | click | name=export_range_start | 
-        self.driver.find_element(By.NAME, "export_range_start").click()
-        # 24 | click | name=export_range_start |  
-        self.driver.find_element(By.NAME, "export_range_start").click()
-        # 26 | type | name=export_range_start | 2021/07/06
+
+        ### set include task list
+        if self.include_task_list == True:
+            self.driver.find_element(By.XPATH, '/html/body/div[1]/div/div[6]/div[2]/div/div/table/tbody/tr[4]/td[2]/div[1]/label/input').click()
+            print('including task list')
+        elif self.include_task_list == False:
+            self.driver.find_element(By.XPATH, '/html/body/div[1]/div/div[6]/div[2]/div/div/table/tbody/tr[4]/td[2]/div[2]/label/input').click()
+            print('excluding task list')
+
+
+
+        ### set date
+        #click date range
+        self.driver.find_element(By.XPATH, '/html/body/div[1]/div/div[6]/div[2]/div/div/table/tbody/tr[5]/td[2]/label[2]/input').click()
+
         send_date = self._get_start_date()
-        self.driver.find_element(By.NAME, "export_range_start").send_keys(str(send_date))
-        # 27 | click | name=export_range_end | 
-        self.driver.find_element(By.NAME, "export_range_end").click()
-        # 28 | type | name=export_range_end | 2021-11-06
+        date_start = self.driver.find_element(By.NAME, "export_range_start")
+        date_start.click()
+        date_start.send_keys(Keys.CONTROL + 'a')
+        date_start.send_keys(send_date)
+        
         send_date = self._get_end_date()
-        self.driver.find_element(By.NAME, "export_range_end").send_keys(str(send_date))
-        # 29 | sendKeys | name=export_range_end | ${KEY_ENTER}
-        self.driver.find_element(By.NAME, "export_range_end").send_keys(Keys.ENTER)
+        date_end = self.driver.find_element(By.NAME, "export_range_end")
+        date_end.click()
+        date_end.send_keys(Keys.CONTROL + 'a')
+        date_end.send_keys(send_date)
+        date_end.send_keys(Keys.ENTER)
+
         # 30 | click | linkText=Generate | 
         self.driver.find_element(By.LINK_TEXT, "Generate").click()
-        # 31 | click | linkText=Download | 
         self.driver.find_element(By.LINK_TEXT, "Download").click()
         self.driver.switch_to.window(window_name=self.driver.window_handles[-1])
         
         #select image
-        img = self.driver.find_element_by_xpath('//html//body//img')
+        WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.XPATH, '//html//body//img')))
+        img = self.driver.find_element_by_xpath('//img')
+        print(img)
         src = img.get_attribute('src')
-        actions.context_click(img).send_keys('v').perform()
+        WebDriverWait(self.driver, 0.5)
 
+        #download using requests lib
+        all_cookies = self.driver.get_cookies()
+        cookies = {}  
+        for s_cookie in all_cookies:
+            cookies[s_cookie["name"]]=s_cookie["value"]
+
+        r = requests.get(src,cookies=cookies)
+        if r.status_code == 200:
+            file = open(os.path.join(self.save_path, self.filename+'.jpg'), "wb")
+            file.write(r.content)
+            file.close()
+            print(f'saved {self.filename} successfully')
+
+        #close image tab
+        self.driver.close()
+        self.driver.switch_to.window(window_name=self.driver.window_handles[0])
+
+        # close download dialog
+        self.driver.find_element(By.XPATH,'//html//body//div[1]//div//div[6]//div[1]//a//h3//i').click()
 
 if __name__ == '__main__':
     print(ROOT_DIR)
@@ -189,6 +236,9 @@ if __name__ == '__main__':
         save_directory=program_config['Paths']['save_directory']
 
     print('save_directory', save_directory)
+
+    #make save directory if needed
+    Path(save_directory).mkdir(parents=True, exist_ok=True)
 
 
     project_config= configparser.ConfigParser()
@@ -204,4 +254,7 @@ if __name__ == '__main__':
         proj.set_project(project)
         print ("starting:", proj.project_name)
         proj.download_file()
+    
+
+
 

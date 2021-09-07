@@ -224,6 +224,8 @@ class DownloadProject():
         # close download dialog
         self.driver.find_element(By.XPATH,'//html//body//div[1]//div//div[6]//div[1]//a//h3//i').click()
 
+    def quit(self):
+        self.driver.quit()
 if __name__ == '__main__':
     print(ROOT_DIR)
 
@@ -254,6 +256,9 @@ if __name__ == '__main__':
         proj.set_project(project)
         print ("starting:", proj.project_name)
         proj.download_file()
+    
+    print('done')
+    proj.quit()
     
 
 

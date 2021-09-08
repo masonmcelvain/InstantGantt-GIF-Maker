@@ -32,7 +32,7 @@ class DownloadProject():
         cap = DesiredCapabilities().FIREFOX
         cap["marionette"] = True
         opts = Options()
-        opts.log.level = "debug"
+        opts.log.level = "Info"
         opts.set_preference("browser.download.manager.showWhenStarting", False)
         opts.set_preference(f"browser.download.dir","{save_path}")
         opts.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/octet-stream,application/vnd.ms-excel,image/jpeg,image/jpg")
@@ -252,10 +252,12 @@ if __name__ == '__main__':
         print(project)
         if project == 'DEFAULT':
             continue
-        
-        proj.set_project(project)
-        print ("starting:", proj.project_name)
-        proj.download_file()
+        try:
+            proj.set_project(project)
+            print ("starting:", proj.project_name)
+            proj.download_file()
+        except:
+            proj.quit()
     
     print('done')
     proj.quit()

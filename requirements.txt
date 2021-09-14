@@ -2,3 +2,4 @@ selenium
 config-parser
 python-dateutil
 pathlib
+imageio

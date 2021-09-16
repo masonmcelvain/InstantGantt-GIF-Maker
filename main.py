@@ -134,11 +134,13 @@ class DownloadProject():
         actions = ActionChains(self.driver)
         actions.move_to_element(zoom_out)
 
-        # try:
-        #     self.driver.find_element(By.CSS_SELECTOR, ".close > .fa").click()
-        # except NoSuchElementException as e:
-        #     print('nothing to close')
-        #     pass
+        try:
+            close = WebDriverWait(self.driver, 4).until(self.driver.find_element(By.CSS_SELECTOR, ".close > .fa"))
+            close.click()
+            print('closing popup')
+        except NoSuchElementException as e:
+            print('nothing to close')
+            pass
         
         for i in range(0,5):
             actions.click(zoom_out)

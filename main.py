@@ -49,17 +49,18 @@ class DownloadProject():
         self.include_task_list = None
         self.workspace = None
 
+        self.project_config = configparser.ConfigParser()
+        self.project_config.read('project_config.ini')
+
         self.login()
 
     def set_project(self, project_name):
         self.project_name = project_name
-        config= configparser.ConfigParser()
-
-        config.read('project_config.ini')
-        self.months_before = config[project_name]['months_before']
-        self.months_after = config[project_name]['months_after']
-        self.include_task_list = strtobool(config[project_name]['include_task_list'])
-        self.workspace = config[project_name]['workspace']
+        
+        self.months_before = self.project_config[project_name]['months_before']
+        self.months_after = self.project_config[project_name]['months_after']
+        self.include_task_list = strtobool(self.project_config[project_name]['include_task_list'])
+        self.workspace = self.project_config[project_name]['workspace']
         self.filename = '_'.join([self.workspace, self.project_name, datetime.date.today().strftime('%Y-%m-%d')])
 
     def _get_start_date(self):
@@ -126,39 +127,30 @@ class DownloadProject():
         project_link = self.driver.find_element(By.XPATH, f"//span[contains(text(),'{self.project_name}')]")
         self.action.move_to_element(project_link)
         self.driver.execute_script("arguments[0].click();", project_link)
-        # print('clikcing unknown in 5')
-        # time.sleep(5)
-        # print('click')
-        # # 10 | click | css=.\_32AWpOHuVapfx2jS2omul_:nth-child(5) span | 
-        # self.driver.find_element(By.CSS_SELECTOR, ".\\_32AWpOHuVapfx2jS2omul_:nth-child(5) span").click()
-        # time.sleep(20)
-        # # 11 | runScript | window.scrollTo(0,0) | 
-        # self.driver.execute_script("window.scrollTo(0,0)")
-        # 12 | click | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container | 
-        # self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container").click()
-        # # 13 | click | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container | 
-        # self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container").click()
-        # # 14 | click | css=.toolbar-row:nth-child(2) > .toolbar-row-icon-container | 
-        # self.driver.find_element(By.CSS_SELECTOR, ".toolbar-row:nth-child(2) > .toolbar-row-icon-container").click()
-        # # 15 | click | css=.toolbar-group-first-item > .toolbar-row-icon-container | 
-        # self.driver.find_element(By.CSS_SELECTOR, ".toolbar-group-first-item > .toolbar-row-icon-container").click()
-        # # 16 | runScript | window.scrollTo(0,0) | 
-        # self.driver.execute_script("window.scrollTo(0,0)")
-        # 17 | click | css=div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container |
-        #zoom out 5 times
+
         
         zoom_out = WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container")))
+        zoom_in = WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".toolbar-group-first-item > .toolbar-row-icon-container")))
         actions = ActionChains(self.driver)
         actions.move_to_element(zoom_out)
 
+        # try:
+        #     self.driver.find_element(By.CSS_SELECTOR, ".close > .fa").click()
+        # except NoSuchElementException as e:
+        #     print('nothing to close')
+        #     pass
         
         for i in range(0,5):
-            actions.click(zoom_out).perform()
-            time.sleep(0.1)
+            actions.click(zoom_out)
+
         
-        element = self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(3) > .toolbar-row > .toolbar-row-icon-container")
-        actions = ActionChains(self.driver)
-        actions.double_click(element).perform()
+        print(range(0,int(self.project_config[self.project_name]['zoom_level'])))
+        for i in range(0,int(self.project_config[self.project_name]['zoom_level'])):
+            print('zoom',i)
+            actions.click(zoom_in)
+        
+        actions.perform()
+        
         # 21 | click | linkText=Export & Share | 
         self.driver.find_element(By.LINK_TEXT, "Export & Share").click()
         # 22 | click | linkText=Export as Image & PDF | 
@@ -200,7 +192,6 @@ class DownloadProject():
         #select image
         WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.XPATH, '//html//body//img')))
         img = self.driver.find_element_by_xpath('//img')
-        print(img)
         src = img.get_attribute('src')
         WebDriverWait(self.driver, 0.5)
 

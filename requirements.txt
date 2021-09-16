@@ -3,3 +3,4 @@ config-parser
 python-dateutil
 pathlib
 imageio
+requests

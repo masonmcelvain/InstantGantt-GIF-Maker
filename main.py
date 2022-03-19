@@ -106,8 +106,8 @@ class DownloadProject():
         self.driver.execute_script("arguments[0].click();", login_button)
 
         #log in page
-        WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.NAME, "email"))).send_keys("***REMOVED***")
-        self.driver.find_element(By.NAME, "password").send_keys("***REMOVED***") 
+        WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.NAME, "email"))).send_keys("REDACTED")
+        self.driver.find_element(By.NAME, "password").send_keys("REDACTED") 
         self.driver.find_element(By.CSS_SELECTOR, ".auth0-label-submit").click()
 
     def download_file(self):

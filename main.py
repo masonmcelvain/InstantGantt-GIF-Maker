@@ -4,7 +4,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
-# from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -27,7 +26,7 @@ class Actions(ActionChains):
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class DownloadProject():
-    def __init__(self, save_path):
+    def __init__(self, save_path, USERNAME, PASSWORD):
         fpath = os.path.join('C:\\', 'Program Files', 'Geckodriver', 'geckodriver.exe')
         cap = DesiredCapabilities().FIREFOX
         cap["marionette"] = True
@@ -51,6 +50,8 @@ class DownloadProject():
 
         self.project_config = configparser.ConfigParser()
         self.project_config.read('project_config.ini')
+        self.username=USERNAME
+        self.password=PASSWORD
 
         self.login()
 
@@ -106,8 +107,8 @@ class DownloadProject():
         self.driver.execute_script("arguments[0].click();", login_button)
 
         #log in page
-        WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.NAME, "email"))).send_keys("REDACTED")
-        self.driver.find_element(By.NAME, "password").send_keys("REDACTED") 
+        WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.NAME, "email"))).send_keys(str(self.username))
+        self.driver.find_element(By.NAME, "password").send_keys(str(self.password)) 
         self.driver.find_element(By.CSS_SELECTOR, ".auth0-label-submit").click()
 
     def download_file(self):
@@ -220,10 +221,12 @@ class DownloadProject():
     def quit(self):
         self.driver.quit()
 if __name__ == '__main__':
-    print(ROOT_DIR)
+    print('root directory', ROOT_DIR)
 
     program_config=configparser.ConfigParser()
     program_config.read('program_config.ini')
+    USERNAME=program_config['Credentials']['username']
+    PASSWORD=program_config['Credentials']['password']
 
     if program_config['Paths']['save_directory'][0] == '~':
         save_directory=os.path.expanduser(program_config['Paths']['save_directory'])
@@ -238,12 +241,13 @@ if __name__ == '__main__':
 
     project_config= configparser.ConfigParser()
     project_config.read('project_config.ini')
-    proj = DownloadProject(save_directory)
+    proj = DownloadProject(save_directory, USERNAME, PASSWORD)
     
     for project in project_config:
         
-        print(project)
+        print('on project:', project)
         if project == 'DEFAULT':
+            # skip default project
             continue
         try:
             proj.set_project(project)

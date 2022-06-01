@@ -55,7 +55,7 @@ class DownloadProject():
 
         self.login()
 
-    def set_project(self, project_name):
+    def _set_project(self, project_name):
         self.project_name = project_name
         
         self.months_before = self.project_config[project_name]['months_before']
@@ -111,7 +111,16 @@ class DownloadProject():
         self.driver.find_element(By.NAME, "password").send_keys(str(self.password)) 
         self.driver.find_element(By.CSS_SELECTOR, ".auth0-label-submit").click()
 
-    def download_file(self):
+    def download_file(self, project, is_first_run):
+        self._set_project(project)
+
+        if not is_first_run:
+            # open workspace side bar
+            workspace_sidebar_selector = "img[src='/img/iso.png']"
+            WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, workspace_sidebar_selector)))
+            workspace_sidebar = self.driver.find_element(By.CSS_SELECTOR, workspace_sidebar_selector)
+            self.driver.execute_script("arguments[0].click();", workspace_sidebar)
+
         # open workspace drop down
         workspace_dropdown_selector = "div[data-toggle='dropdown'] > div .fa-caret-down"
         WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, workspace_dropdown_selector)))
@@ -244,16 +253,16 @@ if __name__ == '__main__':
     project_config.read('project_config.ini')
     proj = DownloadProject(save_directory, USERNAME, PASSWORD)
     
+    is_first_run = True
     for project in project_config:
-        
+        is_first_run = False
         print('on project:', project)
         if project == 'DEFAULT':
             # skip default project
             continue
         try:
-            proj.set_project(project)
             print ("starting:", proj.project_name)
-            proj.download_file()
+            proj.download_file(project, is_first_run)
         except:
             proj.quit()
     

@@ -27,7 +27,7 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class DownloadProject():
     def __init__(self, save_path, USERNAME, PASSWORD):
-        fpath = os.path.join('C:\\', 'Program Files', 'Geckodriver', 'geckodriver.exe')
+        fpath = os.path.join('C:\\', 'Users', 'Dustin', 'Exec', 'geckodriver.exe')
         cap = DesiredCapabilities().FIREFOX
         cap["marionette"] = True
         opts = Options()
@@ -113,8 +113,9 @@ class DownloadProject():
 
     def download_file(self):
         # open workspace drop down
-        WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div:nth-child(1) > .fa-caret-down:nth-child(1)")))
-        workspace_dropdown = self.driver.find_element(By.CSS_SELECTOR, "div:nth-child(1) > .fa-caret-down:nth-child(1)")
+        workspace_dropdown_selector = "div[data-toggle='dropdown'] > div .fa-caret-down"
+        WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, workspace_dropdown_selector)))
+        workspace_dropdown = self.driver.find_element(By.CSS_SELECTOR, workspace_dropdown_selector)
         self.driver.execute_script("arguments[0].click();", workspace_dropdown)
         
         # select workspace

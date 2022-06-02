@@ -1,1 +1,2 @@
-python C:\Users\Dustin\Documents\GitHub\LocalLogic\InstantGantt-GIF-Maker\make_gif.py
+cd C:\Users\Dustin\Documents\GitHub\LocalLogic\InstantGantt-GIF-Maker
+python make_gif.py

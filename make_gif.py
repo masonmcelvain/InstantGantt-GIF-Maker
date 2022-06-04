@@ -1,8 +1,11 @@
 import configparser, os, datetime
+import dateutil.parser as dparser
+import dateutil.relativedelta
 from pathlib import Path
 from PIL import Image
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+MONTH_AGO = datetime.datetime.now() - dateutil.relativedelta.relativedelta(months=1)
 
 #get filenames
 config= configparser.ConfigParser()
@@ -24,12 +27,14 @@ print(f"Reading images in {img_dir} from {ROOT_DIR}")
 for project in config:
     if project == 'DEFAULT':
             continue
-    
+
     project_files = []
     workspace_name = config[project]['workspace']
     for filename in os.listdir(img_dir):
         if filename.startswith("_".join([workspace_name, project])):
-            project_files.append(os.path.join(img_dir, filename))
+            file_date = dparser.parse(filename, fuzzy=True)
+            if file_date >= MONTH_AGO:
+                project_files.append(os.path.join(img_dir, filename))
 
     save_as_name = "_".join([workspace_name, project, datetime.date.today().strftime('%Y-%m-%d')]) + ".gif"
     fp_out = os.path.join(save_dir,save_as_name)
